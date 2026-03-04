@@ -1,0 +1,40 @@
+{
+  "name": "math-video-helper-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.1.29",
+    "@langchain/langgraph": "^1.2.0",
+    "@langchain/openai": "^1.2.11",
+    "@remotion/cli": "4.0.431",
+    "@types/adm-zip": "^0.5.7",
+    "adm-zip": "^0.5.16",
+    "dotenv": "^17.3.1",
+    "multer": "^2.1.0",
+    "music-metadata": "^11.12.1",
+    "node-edge-tts": "^1.2.10",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.431",
+    "tesseract.js": "^7.0.0",
+    "zod": "^4.3.6",
+    "express": "^5.2.1"
+  }
+}

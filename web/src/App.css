@@ -1,0 +1,621 @@
+:root {
+  --primary-color: #1890ff;
+  --card-bg: #ffffff;
+  --text-primary: #262626;
+  --text-secondary: #8c8c8c;
+  --border-color: #d9d9d9;
+  --success-color: #52c41a;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f5f5;
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.app-container {
+  min-height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 32px 24px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.app-header h1 {
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.app-header .ant-typography {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* 装饰图标 */
+.header-decoration {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-section,
+.video-section {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.input-section {
+  max-width: 850px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.mode-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.mode-selector .ant-radio-group {
+  background: #f0f2f5;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.mode-selector .ant-radio-button-wrapper {
+  height: 36px;
+  line-height: 34px;
+  padding: 0 20px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.mode-selector .ant-radio-button-wrapper::before {
+  display: none;
+}
+
+.mode-selector .ant-radio-button-wrapper-checked {
+  background: #1890ff !important;
+  border-color: #1890ff !important;
+  color: #fff !important;
+}
+
+.input-content {
+  margin-bottom: 24px;
+}
+
+.text-input-wrapper .problem-textarea {
+  font-size: 14px;
+  border-radius: 6px;
+  resize: vertical;
+  border: 1px solid var(--border-color);
+}
+
+.text-input-wrapper .problem-textarea:hover {
+  border-color: #40a9ff;
+}
+
+.text-input-wrapper .problem-textarea:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
+
+.image-upload-wrapper {
+  width: 100%;
+}
+
+.image-upload-wrapper .ant-upload-drag {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 1px dashed var(--border-color);
+  background: #fafafa;
+}
+
+.image-upload-wrapper .ant-upload-drag:hover {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+
+.image-upload-wrapper .ant-upload-drag-icon {
+  margin-bottom: 8px;
+}
+
+.image-upload-wrapper .ant-upload-drag-icon .anticon {
+  color: #1890ff;
+}
+
+.image-upload-wrapper .ant-upload-text {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.image-upload-wrapper .ant-upload-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.preview-tip {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 4px;
+  color: #1890ff;
+  font-size: 13px;
+}
+
+.action-section {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.generate-btn {
+  min-width: 140px;
+  height: 40px;
+  font-size: 15px;
+  border-radius: 6px;
+  background: #1890ff;
+  border: none;
+}
+
+.generate-btn:hover {
+  background: #40a9ff;
+}
+
+.stop-btn {
+  min-width: 100px;
+  height: 40px;
+  font-size: 15px;
+  border-radius: 6px;
+  background: #ff4d4f;
+  border: none;
+  color: white;
+}
+
+.stop-btn:hover {
+  background: #ff7875;
+}
+
+.progress-wrapper {
+  margin-top: 20px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.progress-wrapper .ant-progress-inner {
+  border-radius: 6px !important;
+}
+
+.progress-wrapper .ant-progress-bg {
+  border-radius: 6px !important;
+}
+
+.current-step {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f0f5ff;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.message {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 6px;
+  color: #faad14;
+  text-align: center;
+  font-size: 14px;
+}
+
+.message.success {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: var(--success-color);
+}
+
+.video-section {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.video-player {
+  width: 100%;
+  max-height: 540px;
+  border-radius: 6px;
+  background: #000;
+  display: block;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.download-btn {
+  display: block;
+  margin: 0 auto;
+  border-radius: 6px;
+  height: 36px;
+  font-weight: 500;
+  background: #1890ff;
+  border: none;
+}
+
+.download-btn:hover {
+  background: #40a9ff;
+}
+
+.analysis-wrapper {
+  margin-top: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+}
+
+.analysis-wrapper .ant-typography {
+  color: #262626;
+  font-size: 14px;
+}
+
+.markdown-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.markdown-content h1 { font-size: 18px; }
+.markdown-content h2 { font-size: 16px; }
+.markdown-content h3 { font-size: 15px; }
+
+.markdown-content p {
+  margin: 6px 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 20px;
+  margin: 6px 0;
+}
+
+.markdown-content li {
+  margin: 4px 0;
+}
+
+.markdown-content code {
+  background: #f5f5f5;
+  color: #c41d7f;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+}
+
+.markdown-content pre {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+  color: #c41d7f;
+}
+
+.markdown-content strong {
+  color: #262626;
+  font-weight: 600;
+}
+
+.markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+  border: 1px solid #d9d9d9;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.markdown-content table th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 12px;
+  }
+
+  .app-header {
+    padding: 20px 16px;
+  }
+
+  .app-header h1 {
+    font-size: 22px;
+  }
+
+  .header-decoration {
+    gap: 16px;
+  }
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  /* Radio 按钮组移动端优化 */
+  .mode-selector {
+    width: 100%;
+  }
+
+  .mode-selector .ant-radio-group {
+    display: flex;
+    width: 100%;
+  }
+
+  .mode-selector .ant-radio-button-wrapper {
+    flex: 1;
+    padding: 0 8px;
+    height: 36px;
+    line-height: 34px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .mode-selector .ant-radio-button-wrapper span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .input-section,
+  .video-section {
+    padding: 16px 12px;
+    border-radius: 8px;
+  }
+
+  /* TextArea 移动端优化 */
+  .text-input-wrapper .problem-textarea {
+    font-size: 14px;
+    min-height: 120px;
+  }
+
+  /* 图片上传移动端优化 */
+  .image-upload-wrapper .ant-upload-drag {
+    padding: 16px 12px;
+  }
+
+  .image-upload-wrapper .ant-upload-drag-icon .anticon {
+    font-size: 36px !important;
+  }
+
+  .image-upload-wrapper .ant-upload-text {
+    font-size: 13px;
+  }
+
+  .image-upload-wrapper .ant-upload-hint {
+    font-size: 12px;
+  }
+
+  /* 按钮移动端优化 */
+  .generate-btn,
+  .stop-btn {
+    height: 44px;
+    font-size: 15px;
+    min-width: 100px;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .action-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-section .ant-btn {
+    margin: 0 auto;
+  }
+
+  /* 分析内容移动端优化 */
+  .analysis-wrapper {
+    padding: 12px;
+  }
+
+  .analysis-wrapper .ant-typography {
+    font-size: 13px;
+  }
+
+  .markdown-content {
+    font-size: 13px;
+  }
+
+  .markdown-content h1 { font-size: 16px; }
+  .markdown-content h2 { font-size: 15px; }
+  .markdown-content h3 { font-size: 14px; }
+
+  /* 进度条移动端优化 */
+  .progress-wrapper {
+    padding: 12px;
+  }
+
+  .current-step {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  /* 消息提示移动端优化 */
+  .message {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  /* 视频播放区域移动端优化 */
+  .video-player {
+    max-height: 300px;
+    border-radius: 4px;
+  }
+
+  .download-btn {
+    width: 100%;
+    max-width: 200px;
+    height: 40px;
+  }
+}
+
+/* 更小屏幕优化 */
+@media (max-width: 480px) {
+  .app-header {
+    padding: 16px 12px;
+  }
+
+  .app-header h1 {
+    font-size: 20px;
+  }
+
+  .header-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .mode-selector .ant-radio-button-wrapper {
+    padding: 0 4px;
+    font-size: 12px;
+  }
+
+  .input-section,
+  .video-section {
+    padding: 12px 10px;
+  }
+
+  .generate-btn,
+  .stop-btn {
+    max-width: 100%;
+  }
+
+  .video-player {
+    max-height: 220px;
+  }
+}
+
+/* 弹框样式 */
+.ant-modal-content {
+  border-radius: 8px !important;
+}
+
+.ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 20px;
+}
+
+.ant-modal-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.ant-modal-body {
+  padding: 20px;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 12px 20px;
+}
+
+/* 视频弹框移动端适配 */
+.video-modal .ant-modal-content {
+  max-width: 100%;
+}
+
+.video-modal .ant-modal-body {
+  padding: 12px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .video-modal .ant-modal-content {
+    margin: 8px;
+  }
+
+  .video-modal .ant-modal-header {
+    padding: 12px 16px;
+  }
+
+  .video-modal .ant-modal-body {
+    padding: 12px;
+  }
+
+  .video-modal .ant-modal-footer {
+    padding: 8px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .video-modal .ant-modal-footer button {
+    flex: 1;
+    min-width: 80px;
+  }
+}

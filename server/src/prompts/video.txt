@@ -1,0 +1,902 @@
+# 角色
+
+你是一个视频创作专家，负责将数学题目的解题过程转化为一个引人入胜的视频。根据分镜设计的步骤，生成一个适合在Remotion中使用的React组件代码。请根据以下要求进行视频创作：
+
+# 视频创作要求
+
+1. 视频结构：
+   - 引入画面（开场分镜）：设计一个引人入胜的开场画面，**必须清晰显示完整的数学题目内容**（包括已知条件和求解问题），并配合语音朗读题目，让观众听清楚题目内容。
+   - 分镜步骤：根据每个步骤的描述和画面设计，创建对应的视频片段。每个片段应包含：
+     - 视觉元素：根据分镜设计的画面描述，使用图表、示意图、动画等视觉元素来增强理解。
+     - 语音内容：配合每个步骤的语音内容，确保观众能够清晰地理解解题过程。
+   - 总结画面：设计一个总结画面，回顾解题过程并强调关键点。
+
+2. 输出格式：
+   - 生成一个完整的React组件代码，适用于Remotion框架。
+   - 组件应包含所有必要的导入、状态管理和渲染逻辑，以确保视频能够正确播放。
+
+3. 视觉设计：
+   - 确保视频的视觉风格一致，使用适当的颜色、字体和动画效果来增强观众的观看体验。
+   - 每个步骤的画面设计应与其描述内容紧密相关，帮助观众更好地理解解题过程。
+
+4. 语音同步：确保每个步骤的语音内容与对应的视觉元素同步播放，增强观众的理解和参与感。
+
+5. 视频的分辨率是1920 * 1080，生成的插画大小注意一下，不要太小。
+
+6. 如果题目包含图片（images 字段），请使用 Img 组件在视频中显示图片。图片 URL 可以直接使用。
+
+# 提示
+
+1. 使用Html5Audio组件渲染音频，
+2. 不要使用Text组件，使用div组件代替。
+3. 输出的代码中```jsx {{code}} ```包裹
+
+请根据以上要求创作视频，并返回完整的React组件代码。只需要返回代码，不需要其他解释。
+
+# 示例代码
+
+import {
+  AbsoluteFill,
+  interpolate,
+  Sequence,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+  Html5Audio,
+} from "remotion";
+
+import Audio1 from "./audio/step_1.mp3";
+import Audio2 from "./audio/step_2.mp3";
+import Audio3 from "./audio/step_3.mp3";
+import Audio4 from "./audio/step_4.mp3";
+import Audio5 from "./audio/step_5.mp3";
+
+// ============ Constants ============
+const COLORS = {
+  background: "#E8F4FD",
+  primary: "#2D7DD2",
+  secondary: "#45B7D1",
+  accent: "#F7B32B",
+  text: "#1A1A2E",
+  boat: "#8B4513",
+  person: "#FF6B6B",
+  personAlt: "#4ECDC4",
+  success: "#2ECC71",
+};
+
+const FONT_FAMILY = "PingFang SC, Microsoft YaHei, sans-serif";
+
+// ============ Helper Components ============
+
+// Small person icon
+const Person: React.FC<{ x: number; y: number; color?: string; scale?: number }> = ({
+  x,
+  y,
+  color = COLORS.person,
+  scale = 1,
+}) => (
+  <svg x={x} y={y} width={24 * scale} height={32 * scale} viewBox="0 0 24 32">
+    <circle cx={12} cy={8} r={6} fill={color} />
+    <ellipse cx={12} cy={28} rx={8} ry={6} fill={color} />
+  </svg>
+);
+
+// Boat icon
+const Boat: React.FC<{ x: number; y: number; scale?: number; opacity?: number }> = ({
+  x,
+  y,
+  scale = 1,
+  opacity = 1,
+}) => (
+  <svg
+    x={x}
+    y={y}
+    width={80 * scale}
+    height={40 * scale}
+    viewBox="0 0 80 40"
+    style={{ opacity }}
+  >
+    <path
+      d="M5 25 Q40 45 75 25 L70 35 Q40 50 10 35 Z"
+      fill={COLORS.boat}
+    />
+    <rect x={35} y={5} width={4} height={25} fill={COLORS.boat} />
+    <path d="M37 5 L55 15 L37 18 Z" fill={COLORS.boat} />
+  </svg>
+);
+
+// ============ Scene 1: Introduction ============
+const Introduction: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const titleOpacity = spring({ fps, frame, config: { damping: 15 } });
+  const peopleOpacity = spring({ fps, frame: frame - 20, config: { damping: 15 } });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      {/* Title */}
+      <div
+        style={{
+          position: "absolute",
+          top: 120,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity: titleOpacity,
+          transform: `translateY(${(1 - titleOpacity) * 30}px)`,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 42,
+            fontWeight: "bold",
+            color: COLORS.text,
+            lineHeight: 1.6,
+          }}
+        >
+          三年级有198人，每条船最多坐8人，
+          <br />
+          所有同学一起划船，至少需要多少条船？
+        </div>
+      </div>
+
+      {/* Visual representation */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 100,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          gap: 40,
+          opacity: peopleOpacity,
+        }}
+      >
+        {/* 198 students representation */}
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize: 24,
+              color: COLORS.text,
+              marginBottom: 20,
+            }}
+          >
+            198名同学
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              width: 300,
+              justifyContent: "center",
+              gap: 4,
+            }}
+          >
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div key={i} style={{ display: "flex", gap: 2, marginBottom: 2 }}>
+                {Array.from({ length: 8 }).map((_, j) => (
+                  <Person
+                    key={i * 8 + j}
+                    x={0}
+                    y={0}
+                    color={j < 4 ? COLORS.person : COLORS.personAlt}
+                    scale={0.6}
+                  />
+                ))}
+              </div>
+            ))}
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Person key={192 + i} x={0} y={0} color={COLORS.person} scale={0.6} />
+            ))}
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            fontSize: 40,
+            color: COLORS.primary,
+          }}
+        >
+          →
+        </div>
+
+        {/* Boat representation */}
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize: 24,
+              color: COLORS.text,
+              marginBottom: 20,
+            }}
+          >
+            每船8人
+          </div>
+          <Boat x={0} y={0} scale={1.5} />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 4,
+              marginTop: 10,
+            }}
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Person
+                key={i}
+                x={0}
+                y={0}
+                color={i < 4 ? COLORS.person : COLORS.personAlt}
+                scale={0.7}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ============ Scene 2: Division Calculation ============
+const DivisionStep: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const opacity = spring({ fps, frame, config: { damping: 15 } });
+  const blocksProgress = spring({ fps, frame: frame - 15, config: { damping: 12 } });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      {/* Division expression */}
+      <div
+        style={{
+          position: "absolute",
+          top: 80,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity,
+          transform: `translateY(${(1 - opacity) * 30}px)`,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 56,
+            fontWeight: "bold",
+            color: COLORS.text,
+          }}
+        >
+          198 ÷ 8 = 24.75
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 28,
+            color: COLORS.secondary,
+            marginTop: 20,
+          }}
+        >
+          24条船可以坐满，还剩下6个人
+        </div>
+      </div>
+
+      {/* Block visualization */}
+      <div
+        style={{
+          position: "absolute",
+          top: 280,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          gap: 20,
+        }}
+      >
+        {/* 24 groups of 8 */}
+        <div>
+          <div
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize: 24,
+              color: COLORS.text,
+              marginBottom: 15,
+              textAlign: "center",
+            }}
+          >
+            24个完整的8人小组
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              width: 400,
+              gap: 8,
+              opacity: blocksProgress,
+            }}
+          >
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: i % 2 === 0 ? COLORS.primary : COLORS.secondary,
+                  borderRadius: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: FONT_FAMILY,
+                  fontSize: 14,
+                  color: "white",
+                  fontWeight: "bold",
+                }}
+              >
+                8
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Remaining 6 */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            marginLeft: 40,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize: 24,
+              color: COLORS.text,
+              marginBottom: 15,
+            }}
+          >
+            剩余6人
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              opacity: blocksProgress,
+            }}
+          >
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: COLORS.accent,
+                  borderRadius: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: FONT_FAMILY,
+                  fontSize: 14,
+                  color: "white",
+                  fontWeight: "bold",
+                }}
+              >
+                1
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ============ Scene 3: Full Boats ============
+const FullBoatsStep: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const opacity = spring({ fps, frame, config: { damping: 15 } });
+  const boatsProgress = spring({ fps, frame: frame - 10, config: { damping: 12 } });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      <div
+        style={{
+          position: "absolute",
+          top: 50,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 36,
+            fontWeight: "bold",
+            color: COLORS.text,
+          }}
+        >
+          24条船每条坐8人
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 28,
+            color: COLORS.primary,
+            marginTop: 10,
+          }}
+        >
+          24 × 8 = 192人
+        </div>
+      </div>
+
+      {/* Boats with people */}
+      <div
+        style={{
+          position: "absolute",
+          top: 180,
+          left: 0,
+          right: 0,
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 15,
+          padding: "0 40px",
+        }}
+      >
+        {Array.from({ length: 24 }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              opacity: interpolate(boatsProgress, [i / 24, (i + 1) / 24], [0, 1]),
+            }}
+          >
+            <div style={{ display: "flex", gap: 2, marginBottom: 5 }}>
+              {Array.from({ length: 8 }).map((_, j) => (
+                <Person
+                  key={j}
+                  x={0}
+                  y={0}
+                  color={j < 4 ? COLORS.person : COLORS.personAlt}
+                  scale={0.5}
+                />
+              ))}
+            </div>
+            <Boat x={0} y={0} scale={0.8} />
+          </div>
+        ))}
+      </div>
+
+      {/* Remaining 6 people */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 80,
+          right: 100,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          opacity,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 24,
+            color: COLORS.text,
+            marginBottom: 15,
+          }}
+        >
+          剩余6人
+        </div>
+        <div style={{ display: "flex", gap: 5 }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Person key={i} x={0} y={0} color={COLORS.accent} scale={0.8} />
+          ))}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ============ Scene 4: Handle Remaining ============
+const HandleRemaining: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const opacity = spring({ fps, frame, config: { damping: 15 } });
+  const newBoatProgress = spring({ fps, frame: frame - 20, config: { damping: 12 } });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      {/* Calculation */}
+      <div
+        style={{
+          position: "absolute",
+          top: 60,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 48,
+            fontWeight: "bold",
+            color: COLORS.text,
+          }}
+        >
+          198 - 192 = 6（人）
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 28,
+            color: COLORS.accent,
+            marginTop: 20,
+          }}
+        >
+          剩下的6名同学还需要再租一条船
+        </div>
+      </div>
+
+      {/* Visual */}
+      <div
+        style={{
+          position: "absolute",
+          top: 220,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 40,
+        }}
+      >
+        {/* Remaining 6 people */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Person key={i} x={0} y={0} color={COLORS.accent} scale={1} />
+            ))}
+          </div>
+          <div
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize: 20,
+              color: COLORS.text,
+            }}
+          >
+            6人
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <div
+          style={{
+            fontSize: 40,
+            color: COLORS.primary,
+            opacity: newBoatProgress,
+          }}
+        >
+          →
+        </div>
+
+        {/* New boat */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            opacity: newBoatProgress,
+            transform: `translateX(${(1 - newBoatProgress) * -50}px)`,
+          }}
+        >
+          <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Person key={i} x={0} y={0} color={COLORS.accent} scale={1} />
+            ))}
+          </div>
+          <Boat x={0} y={0} scale={1.2} />
+          <div
+            style={{
+              fontFamily: FONT_FAMILY,
+              fontSize: 20,
+              color: COLORS.text,
+              marginTop: 10,
+            }}
+          >
+            +1条船
+          </div>
+        </div>
+      </div>
+
+      {/* Plus sign */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 100,
+          left: "50%",
+          transform: "translateX(-50%)",
+          fontFamily: FONT_FAMILY,
+          fontSize: 36,
+          color: COLORS.primary,
+          opacity: newBoatProgress,
+        }}
+      >
+        24 + 1 = 25
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ============ Scene 5: Final Answer ============
+const FinalAnswer: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const opacity = spring({ fps, frame, config: { damping: 15 } });
+  const answerScale = spring({ fps, frame: frame - 15, config: { damping: 10 } });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      {/* Answer display */}
+      <div
+        style={{
+          position: "absolute",
+          top: 80,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 32,
+            color: COLORS.text,
+            marginBottom: 20,
+          }}
+        >
+          24条船坐192人 + 1条船坐6人 =
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 72,
+            fontWeight: "bold",
+            color: COLORS.primary,
+            transform: `scale(${answerScale})`,
+            display: "inline-block",
+          }}
+        >
+          至少需要25条船
+        </div>
+      </div>
+
+      {/* All 25 boats */}
+      <div
+        style={{
+          position: "absolute",
+          top: 250,
+          left: 0,
+          right: 0,
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 10,
+          padding: "0 30px",
+        }}
+      >
+        {Array.from({ length: 25 }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              opacity: interpolate(answerScale, [i / 25, (i + 1) / 25], [0.3, 1]),
+            }}
+          >
+            <div style={{ display: "flex", gap: 1, marginBottom: 3 }}>
+              {Array.from({ length: Math.min(8, 192 - i * 8 + 6 || 8) }).map((_, j) => (
+                <Person
+                  key={j}
+                  x={0}
+                  y={0}
+                  color={j < 4 ? COLORS.person : COLORS.personAlt}
+                  scale={0.35}
+                />
+              ))}
+            </div>
+            <Boat x={0} y={0} scale={0.5} />
+          </div>
+        ))}
+      </div>
+
+      {/* Summary */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 60,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 28,
+            color: COLORS.text,
+          }}
+        >
+          24 × 8 = 192人，192 + 6 = 198人
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ============ Scene 6: Verification ============
+const Verification: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const opacity = spring({ fps, frame, config: { damping: 15 } });
+  const checkProgress = spring({ fps, frame: frame - 20, config: { damping: 12 } });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      {/* Verification expression */}
+      <div
+        style={{
+          position: "absolute",
+          top: 100,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 48,
+            fontWeight: "bold",
+            color: COLORS.text,
+            marginBottom: 30,
+          }}
+        >
+          验证：25 × 8 = 200
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 36,
+            color: checkProgress > 0.5 ? COLORS.success : COLORS.text,
+          }}
+        >
+          200 ≥ 198 ✓
+        </div>
+      </div>
+
+      {/* Check mark animation */}
+      <div
+        style={{
+          position: "absolute",
+          top: 280,
+          left: "50%",
+          transform: `translateX(-50%) scale(${checkProgress})`,
+          opacity: checkProgress,
+        }}
+      >
+        <svg width={120} height={120} viewBox="0 0 120 120">
+          <circle cx={60} cy={60} r={50} fill={COLORS.success} />
+          <path
+            d="M35 60 L50 75 L85 45"
+            stroke="white"
+            strokeWidth={8}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+
+      {/* Celebration */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 100,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          opacity,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 48,
+            color: COLORS.accent,
+          }}
+        >
+          🎉 答案正确！
+        </div>
+        <div
+          style={{
+            fontFamily: FONT_FAMILY,
+            fontSize: 28,
+            color: COLORS.text,
+            marginTop: 20,
+          }}
+        >
+          25条船可以坐200人，足够198人使用
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ============ Main Component ============
+const Component: React.FC = () => {
+  const { fps } = useVideoConfig();
+
+  // Calculate frame offsets for each scene (duration * fps)
+  const scene1End = Math.ceil(15.936 * fps);
+  const scene2End = scene1End + Math.ceil(13.176 * fps);
+  const scene3End = scene2End + Math.ceil(10.776 * fps);
+  const scene4End = scene3End + Math.ceil(10.536 * fps);
+  const scene5End = scene4End + Math.ceil(13.728 * fps);
+  const scene6End = scene5End + Math.ceil(13.848 * fps);
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: COLORS.background }}>
+      <Sequence  durationInFrames={scene1End}>
+        <Html5Audio src={Audio1} />
+        <Introduction />
+      </Sequence>
+      <Sequence from={scene1End} durationInFrames={scene2End - scene1End}>
+        <Html5Audio src={Audio2} />
+        <DivisionStep />
+      </Sequence>
+      <Sequence from={scene2End} durationInFrames={scene3End - scene2End}>
+        <Html5Audio src={Audio3} />
+        <FullBoatsStep />
+      </Sequence>
+      <Sequence from={scene3End} durationInFrames={scene4End - scene3End}>
+        <Html5Audio src={Audio4} />
+        <HandleRemaining />
+      </Sequence>
+      <Sequence from={scene4End} durationInFrames={scene5End - scene4End}>
+        <Html5Audio src={Audio5} />
+        <FinalAnswer />
+      </Sequence>
+      <Sequence from={scene5End} durationInFrames={scene6End - scene5End}>
+        <Html5Audio src={Audio6} />
+        <Verification />
+      </Sequence>
+    </AbsoluteFill>
+  );
+};
+
+export default Component;
