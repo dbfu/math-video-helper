@@ -289,7 +289,6 @@ const QuestionsSchema = z.object({
 export async function parseTextQuestions(text: string): Promise<string[]> {
   const llm = new ChatOpenAI({
     model: process.env.MODEL_NAME || 'gpt-4o-mini',
-    temperature: 0,
     maxCompletionTokens: 4096,
     configuration: {
       apiKey: process.env.API_KEY,
@@ -333,7 +332,6 @@ export async function parseTextQuestions(text: string): Promise<string[]> {
 export async function parseImageQuestions(imageUrl: string): Promise<string[]> {
   const llm = new ChatOpenAI({
     model: process.env.VISION_MODEL,
-    temperature: 0,
     maxCompletionTokens: 4096,
     configuration: {
       apiKey: process.env.API_KEY,

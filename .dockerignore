@@ -1,0 +1,11 @@
+# .dockerignore
+# 排除 node_modules 和构建产物
+**/node_modules
+**/dist
+**/.git
+**/*.log
+**/.env
+**/*.md
+
+chrome-headless-shell-win64.zip
+chrome-headless-shell-mac-arm64.zip

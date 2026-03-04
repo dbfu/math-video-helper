@@ -5,3 +5,7 @@ dist
 
 server/public
 server/audio
+
+chrome-headless-shell-linux64.zip
+chrome-headless-shell-win64.zip
+chrome-headless-shell-mac-arm64.zip

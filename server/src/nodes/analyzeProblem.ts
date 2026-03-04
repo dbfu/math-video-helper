@@ -6,7 +6,6 @@ import { WorkflowState } from './types.js';
 function createLLM() {
   return new ChatOpenAI({
     model: process.env.MODEL_NAME,
-    temperature: 0,
     configuration: {
       apiKey: process.env.API_KEY,
       baseURL: process.env.BASE_URL,

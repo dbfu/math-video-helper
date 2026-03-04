@@ -71,7 +71,7 @@ function getChromeDirName(): string {
     return 'chrome-headless-shell-mac-arm64';
   }
   // Linux (包括 Docker)
-  return 'chrome-headless-shell-linux';
+  return 'chrome-headless-shell-linux64';
 }
 
 // 查找 chrome-headless-shell 路径
@@ -84,7 +84,9 @@ async function findChromePath(projectDir: string): Promise<string | null> {
       ? 'chrome-headless-shell.exe'
       : 'chrome-headless-shell',
   );
+
   if (existsSync(chromeBin)) {
+    console.log('在项目里发现 chrome-headless-shell:', chromeBin);
     return chromeBin;
   }
 
@@ -361,7 +363,7 @@ async function renderVideo(
   const audioDir = path.join(srcDir, 'audio');
   const outDir = path.join(projectDir, 'out');
   const demoProjectDir = process.cwd();
-  const publicDir = path.join(demoProjectDir, 'public');
+  const publicDir = path.join(demoProjectDir, 'public/video');
 
   // 确保 public 目录存在（如果不存在则创建）
   if (!existsSync(publicDir)) {
@@ -446,6 +448,24 @@ export const RemotionRoot: React.FC = () => {
 
     // 使用局部变量存储浏览器路径
     let browserPath = chromePath;
+
+    // 如果 chromePath 为空，尝试从 projectDir 查找
+    if (!browserPath) {
+      browserPath = await findChromePath(projectDir);
+    }
+
+    // 如果仍然找不到，复制本地解压的 chrome 到 projectDir
+    if (!browserPath && chromePath) {
+      const chromeDir = path.dirname(chromePath);
+      const destChromeDir = path.join(projectDir, path.basename(chromeDir));
+      try {
+        await fs.cp(chromeDir, destChromeDir, {recursive: true});
+        browserPath = path.join(destChromeDir, path.basename(chromePath));
+        console.log('✅ 复制本地 chrome 到工作目录:', browserPath);
+      } catch (e) {
+        console.error('复制 chrome 失败:', e);
+      }
+    }
 
     // 如果没有找到浏览器，先下载
     if (!browserPath) {
