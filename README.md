@@ -124,7 +124,7 @@ cd web
 pnpm dev
 ```
 
-访问 http://localhost:5173 即可使用。
+访问 <http://localhost:5173> 即可使用。
 
 ## Docker 部署
 
@@ -155,8 +155,8 @@ docker-compose down
 
 ### 服务地址
 
-- 前端：http://localhost:8099（Docker Run）或 http://localhost（Docker Compose）
-- 后端 API：http://localhost:8000
+- 前端：<http://localhost:8099（Docker> Run）或 <http://localhost（Docker> Compose）
+- 后端 API：<http://localhost:8000>
 
 ### 注意事项
 
@@ -176,9 +176,8 @@ docker-compose down
 | `/health`       | GET  | 健康检查         |
 | `/api/generate` | POST | 文本题目生成视频 |
 | `/api/upload`   | POST | 图片题目生成视频 |
-| `/api/resume`  e` | POST | 文本题目生成视频 |
-| `/api/upload` | POST | 图片题目生成视频 |
-| `/api/resume` | POST | 恢复中断的工作流 |
+| `/api/upload`   | POST | 图片题目生成视频 |
+| `/api/resume`   | POST | 恢复中断的工作流 |
 
 ## 使用说明
 
