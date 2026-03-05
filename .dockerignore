@@ -9,3 +9,6 @@
 
 chrome-headless-shell-win64.zip
 chrome-headless-shell-mac-arm64.zip
+
+server/public
+server/audio

@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import './App.css';
+import { compressImage } from './compress';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -53,7 +54,7 @@ function App() {
 
   // 全局监听粘贴事件，支持在图片模式下粘贴图片
   useEffect(() => {
-    function handleGlobalPaste(e: ClipboardEvent) {
+    async function handleGlobalPaste(e: ClipboardEvent) {
       if (inputMode !== 'image') return;
 
       const items = e.clipboardData?.items;
@@ -64,25 +65,21 @@ function App() {
           e.preventDefault();
           const file = items[i].getAsFile();
           if (file) {
-            const isLt5M = file.size / 1024 / 1024 < 5;
-            if (!isLt5M) {
-              message.error('图片大小不能超过 5MB!');
-              return;
-            }
-            const fileName = `screenshot_${Date.now()}.png`;
-            const newFile = new File([file], fileName, { type: file.type });
+            // 压缩图片
+            const compressedFile = await compressImage(file);
+            const fileName = `screenshot_${Date.now()}.jpg`;
             // 创建符合 Ant Design Upload 格式的文件对象
             const uploadFile: UploadFile = {
               uid: `-${Date.now()}`,
               name: fileName,
               status: 'done',
-              size: newFile.size,
-              type: newFile.type,
+              size: compressedFile.size,
+              type: compressedFile.type,
               lastModifiedDate: new Date(),
-              originFileObj: file as unknown as UploadFile['originFileObj'],
+              originFileObj: compressedFile as unknown as UploadFile['originFileObj'],
             };
             setFileList([uploadFile]);
-            message.success('图片已粘贴');
+            message.success('图片已粘贴并压缩');
           }
           return;
         }
@@ -99,18 +96,15 @@ function App() {
     accept: 'image/*',
     maxCount: 1,
     fileList,
-    beforeUpload: (file) => {
+    beforeUpload: async (file) => {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
         message.error('只能上传图片文件!');
+        return false;
       }
-      const isLt5M = file.size / 1024 / 1024 < 5;
-      if (!isLt5M) {
-        message.error('图片大小不能超过 5MB!');
-      }
-      if (isImage && isLt5M) {
-        setFileList([file]);
-      }
+      // 压缩图片
+      const compressedFile = await compressImage(file);
+      setFileList([compressedFile as unknown as UploadFile]);
       return false;
     },
     onRemove: () => {
