@@ -48,6 +48,7 @@ const WorkflowStateSchema = new StateSchema({
   problemAnalysis: z.string(),
   storyboard: z.array(
     z.object({
+      index: z.number(),
       visual: z.string(),
       voice: z.string(),
       duration: z.number().optional(),

@@ -1,4 +1,5 @@
 export interface StoryboardStep {
+  index: number;
   visual: string;
   voice: string;
   duration?: number;

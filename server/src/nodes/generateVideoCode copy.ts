@@ -1,5 +1,5 @@
 import { ChatOpenAI } from '@langchain/openai';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { WorkflowState } from './types.js';
 
@@ -7,10 +7,10 @@ const MAX_RETRIES = 5;
 
 function createLLM() {
   return new ChatOpenAI({
-    model: process.env.CODE_MODEL_NAME || process.env.MODEL_NAME,
+    model: process.env.MODEL_NAME,
     configuration: {
-      apiKey: process.env.CODE_API_KEY || process.env.API_KEY,
-      baseURL: process.env.CODE_BASE_URL || process.env.BASE_URL,
+      apiKey: process.env.API_KEY,
+      baseURL: process.env.BASE_URL,
     },
   });
 }
@@ -52,18 +52,45 @@ export async function generateVideoCodeNode(
 
   humanContent = JSON.stringify(state.storyboard);
 
-  const result = await llm.invoke([
-    {
-      role: 'system',
-      content: systemPrompt,
-    },
-    {
-      role: 'human',
-      content: humanContent,
-    },
-  ]);
+  const result = await Promise.all(
+    state.storyboard.map((item, index) =>
+      llm.invoke([
+        {
+          role: 'system',
+          content: systemPrompt,
+        },
+        {
+          role: 'human',
+          content: JSON.stringify(item),
+        },
+      ]),
+    ),
+  );
+
+  // const result = await llm.invoke([
+  //   {
+  //     role: 'system',
+  //     content: systemPrompt,
+  //   },
+  //   {
+  //     role: 'human',
+  //     content: humanContent,
+  //   },
+  // ]);
+
+  console.log(result.map((item) => item.content));
+
+  await Promise.all(
+    result.map(async (item, index) => {
+      const code = (item.content as string).match(/```jsx\s*([\s\S]*?)\s*```/);
+      await writeFile(
+        `./codes/step_${index + 1}.tsx`,
+        code?.[1] || (item.content as string),
+      );
+    }),
+  );
 
   console.log('✅ [Node] 视频代码生成完成');
 
-  return {videoCode: result.content as string};
+  return {videoCode: result[0].content as string};
 }

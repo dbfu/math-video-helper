@@ -58,9 +58,10 @@ export async function createStoryboardNode(
     },
   ]);
 
-  const storyboard = result.steps.map((step) => ({
+  const storyboard = result.steps.map((step, index) => ({
     visual: step.visual,
     voice: step.voice,
+    index: index + 1,
   }));
 
   console.log('✅ [Node] 分镜设计完成');
