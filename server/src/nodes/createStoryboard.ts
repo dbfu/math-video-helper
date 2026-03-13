@@ -2,7 +2,8 @@ import { ChatOpenAI } from '@langchain/openai';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { z } from 'zod';
-import { WorkflowState } from './types.js';
+import { extractJson } from '../utils/common';
+import { WorkflowState } from './types';
 
 function createLLM() {
   return new ChatOpenAI({
@@ -43,11 +44,7 @@ export async function createStoryboardNode(
     )
   ).toString();
 
-  const structuredLlm = llm.withStructuredOutput(storyboardSchema, {
-    name: 'storyboard',
-  });
-
-  const result = await structuredLlm.invoke([
+  const result = await llm.invoke([
     {
       role: 'system',
       content: systemPrompt,
@@ -58,7 +55,9 @@ export async function createStoryboardNode(
     },
   ]);
 
-  const storyboard = result.steps.map((step, index) => ({
+  const parsed = await extractJson(storyboardSchema, result.content as string, { strict: true })!;
+
+  const storyboard = parsed!.steps.map((step, index) => ({
     visual: step.visual,
     voice: step.voice,
     index: index + 1,

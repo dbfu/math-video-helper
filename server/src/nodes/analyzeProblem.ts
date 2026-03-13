@@ -1,7 +1,7 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { WorkflowState } from './types.js';
+import { WorkflowState } from './types';
 
 function createLLM() {
   return new ChatOpenAI({

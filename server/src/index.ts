@@ -2,13 +2,9 @@ import type { Request, Response } from 'express';
 import express from 'express';
 import { existsSync, promises as fs } from 'fs';
 import multer from 'multer';
-import path from 'path';
-import {
-  parseImageQuestions,
-  parseTextQuestions,
-  resumeWorkflow,
-  runWorkflow,
-} from './service.js';
+import path, { join } from 'path';
+import { WorkflowState } from './nodes/types';
+import { resumeWorkflow, runWorkflow } from './service';
 
 const app = express();
 const port = 8000;
@@ -76,92 +72,52 @@ app.post(
     try {
       const uploadedFile = req.file as Express.Multer.File;
 
-      res.write(
-        JSON.stringify({type: 'message', content: '正在解析题目...'}) + '\n\n',
-      );
-
       if (!uploadedFile) {
         res.write(JSON.stringify({type: 'error', content: '请上传图片文件'}));
         res.end();
         return;
       }
 
-      const imageUrl = `http://localhost:${port}/uploads/${uploadedFile.filename}`;
-      console.log('Processing image:', imageUrl);
+      const initialState: WorkflowState = {
+        imagePath: join(
+          process.cwd(),
+          `/public/uploads/${uploadedFile.filename}`,
+        ),
+        problemAnalysis: '',
+        storyboard: [],
+        videoCode: '',
+        videoUrl: '',
+      };
 
-      // Parse questions from image
-      const questions = await parseImageQuestions(imageUrl);
-
-      if (!questions || questions.length === 0) {
-        res.write(JSON.stringify({type: 'error', content: '未识别到题目'}));
-        res.end();
-        return;
-      }
-
-      console.log(`Found ${questions.length} questions`);
-
-      // 如果只有一道题，直接执行工作流
-      if (questions.length === 1) {
-        res.write(
-          JSON.stringify({
-            type: 'questions',
-            questions,
-            selectedIndex: 0,
-            selectedQuestion: questions[0],
-          }) + '\n\n',
-        );
-
-        await runWorkflow(questions[0], {
-          onNodeStart: (nodeName) => {
-            res.write(
-              JSON.stringify({type: 'nodeStart', node: nodeName}) + '\n\n',
-            );
-          },
-          onChunk: (chunk) => {
-            res.write(chunk);
-          },
-          onError: (nodeName, error) => {
-            res.write(
-              JSON.stringify({
-                type: 'error',
-                content: `${nodeName} 失败: ${error}`,
-              }),
-            );
-          },
-        });
-      } else {
-        // 多道题：使用 interrupt 机制让用户选择
-        const result = await runWorkflow(questions[0], {
-          questions,
-          onNodeStart: (nodeName) => {
-            res.write(
-              JSON.stringify({type: 'nodeStart', node: nodeName}) + '\n\n',
-            );
-          },
-          onChunk: (chunk) => {
-            res.write(chunk);
-          },
-          onError: (nodeName, error) => {
-            res.write(
-              JSON.stringify({
-                type: 'error',
-                content: `${nodeName} 失败: ${error}`,
-              }),
-            );
-          },
-          onInterrupt: (interruptData) => {
-            // 返回题目列表让用户选择
-            res.write(
-              JSON.stringify({
-                type: 'questions',
-                threadId: interruptData.threadId,
-                questions: interruptData.questions,
-                needSelect: true,
-              }) + '\n\n',
-            );
-          },
-        });
-      }
+      await runWorkflow(initialState, {
+        onNodeStart: (nodeName) => {
+          res.write(
+            JSON.stringify({type: 'nodeStart', node: nodeName}) + '\n\n',
+          );
+        },
+        onChunk: (chunk) => {
+          res.write(chunk);
+        },
+        onError: (nodeName, error) => {
+          res.write(
+            JSON.stringify({
+              type: 'error',
+              content: `${nodeName} 失败: ${error}`,
+            }),
+          );
+        },
+        onInterrupt: (interruptData) => {
+          // 返回题目列表让用户选择
+          res.write(
+            JSON.stringify({
+              type: 'questions',
+              threadId: interruptData.threadId,
+              questions: interruptData.questions,
+              needSelect: true,
+            }) + '\n\n',
+          );
+        },
+      });
     } catch (error) {
       console.error('Upload and generate error:', error);
       res.write(
@@ -230,85 +186,43 @@ app.post(
     }
 
     try {
-      console.log('解析文本题目...');
+      const initialState: WorkflowState = {
+        problemText,
+        problemAnalysis: '',
+        storyboard: [],
+        videoCode: '',
+        videoUrl: '',
+      };
 
-      res.write(
-        JSON.stringify({type: 'message', content: '正在解析题目...'}) + '\n\n',
-      );
-
-      // 解析文本中的多题目
-      const questions = await parseTextQuestions(problemText);
-
-      if (!questions || questions.length === 0) {
-        res.write(JSON.stringify({type: 'error', content: '未识别到题目'}));
-        res.end();
-        return;
-      }
-
-      console.log(`Found ${questions.length} questions`);
-
-      // 如果只有一道题，直接执行工作流
-      if (questions.length === 1) {
-        res.write(
-          JSON.stringify({
-            type: 'questions',
-            questions,
-            selectedIndex: 0,
-            selectedQuestion: questions[0],
-          }) + '\n\n',
-        );
-
-        await runWorkflow(questions[0], {
-          onNodeStart: (nodeName) => {
-            res.write(
-              JSON.stringify({type: 'nodeStart', node: nodeName}) + '\n\n',
-            );
-          },
-          onChunk: (chunk) => {
-            res.write(chunk);
-          },
-          onError: (nodeName, error) => {
-            res.write(
-              JSON.stringify({
-                type: 'error',
-                content: `${nodeName} 失败: ${error}`,
-              }),
-            );
-          },
-        });
-      } else {
-        // 多道题：使用 interrupt 机制让用户选择
-        await runWorkflow(questions[0], {
-          questions,
-          onNodeStart: (nodeName) => {
-            res.write(
-              JSON.stringify({type: 'nodeStart', node: nodeName}) + '\n\n',
-            );
-          },
-          onChunk: (chunk) => {
-            res.write(chunk);
-          },
-          onError: (nodeName, error) => {
-            res.write(
-              JSON.stringify({
-                type: 'error',
-                content: `${nodeName} 失败: ${error}`,
-              }),
-            );
-          },
-          onInterrupt: (interruptData) => {
-            // 返回题目列表让用户选择
-            res.write(
-              JSON.stringify({
-                type: 'questions',
-                threadId: interruptData.threadId,
-                questions: interruptData.questions,
-                needSelect: true,
-              }) + '\n\n',
-            );
-          },
-        });
-      }
+      await runWorkflow(initialState, {
+        onNodeStart: (nodeName) => {
+          res.write(
+            JSON.stringify({type: 'nodeStart', node: nodeName}) + '\n\n',
+          );
+        },
+        onChunk: (chunk) => {
+          res.write(chunk);
+        },
+        onError: (nodeName, error) => {
+          res.write(
+            JSON.stringify({
+              type: 'error',
+              content: `${nodeName} 失败: ${error}`,
+            }),
+          );
+        },
+        onInterrupt: (interruptData) => {
+          // 返回题目列表让用户选择
+          res.write(
+            JSON.stringify({
+              type: 'questions',
+              threadId: interruptData.threadId,
+              questions: interruptData.questions,
+              needSelect: true,
+            }) + '\n\n',
+          );
+        },
+      });
     } catch (error) {
       console.error('Generate error:', error);
       res.write(

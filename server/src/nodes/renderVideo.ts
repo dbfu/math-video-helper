@@ -2,7 +2,7 @@ import { exec, ExecException } from 'child_process';
 import { existsSync, promises as fs, mkdirSync } from 'fs';
 import os from 'os';
 import path, { join } from 'path';
-import { WorkflowState } from './types.js';
+import { WorkflowState } from './types';
 
 // 模板项目目录（只创建一次，安装依赖后保留）
 const templateProjectDir = path.join(os.tmpdir(), 'remotion-project-template');

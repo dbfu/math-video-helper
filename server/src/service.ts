@@ -1,17 +1,14 @@
 import {
   Command,
   END,
-  interrupt,
   MemorySaver,
   START,
   StateGraph,
   StateSchema,
 } from '@langchain/langgraph';
-import { ChatOpenAI } from '@langchain/openai';
 import 'dotenv/config';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { z } from 'zod';
+import { checkQuestionsNode } from './nodes/checkQuestions';
 import {
   analyzeProblemNode,
   createStoryboardNode,
@@ -19,7 +16,8 @@ import {
   generateVoiceNode,
   renderVideoNode,
   WorkflowState,
-} from './nodes/index.js';
+} from './nodes/index';
+import { recognizeProblemNode } from './nodes/recognizeProblem';
 
 // Checkpointer for persisting graph state
 const checkpointer = new MemorySaver();
@@ -61,60 +59,29 @@ const WorkflowStateSchema = new StateSchema({
   retryCount: z.number().optional(),
 });
 
-// 题目检查节点：判断题目数量，如果有多个题目则让用户选择
-async function checkQuestionsNode(
-  state: WorkflowState,
-): Promise<Partial<WorkflowState>> {
-  const questions = state.questions || [];
-
-  // 如果没有 questions 数组，说明是直接传入 problemText
-  if (questions.length === 0) {
-    return {
-      problemText: state.problemText,
-    };
-  }
-
-  // 只有一道题，直接使用该题目
-  if (questions.length === 1) {
-    console.log('只有一道题，直接进入分析');
-    return {
-      problemText: questions[0],
-      selectedQuestionIndex: 0,
-      selectedQuestion: questions[0],
-    };
-  }
-
-  // 有多道题，中断让用户选择
-  console.log(`有 ${questions.length} 道题，等待用户选择...`);
-
-  const interruptPayload = {
-    type: 'question_selection',
-    questions: questions,
-    message: '请选择一道题目',
-  };
-
-  const selectedIndex = interrupt(interruptPayload) as number;
-
-  console.log(`用户选择了第 ${selectedIndex + 1} 道题目`);
-
-  return {
-    selectedQuestionIndex: selectedIndex,
-    selectedQuestion: questions[selectedIndex],
-    problemText: questions[selectedIndex],
-  };
-}
-
 export function createWorkflow() {
   const workflow = new StateGraph(WorkflowStateSchema);
 
   return workflow
+    .addNode('recognizeProblem', recognizeProblemNode)
     .addNode('checkQuestions', checkQuestionsNode)
     .addNode('analyzeProblem', analyzeProblemNode)
     .addNode('createStoryboard', createStoryboardNode)
     .addNode('generateVoice', generateVoiceNode)
     .addNode('generateVideoCode', generateVideoCodeNode)
     .addNode('renderVideo', renderVideoNode)
-    .addEdge(START, 'checkQuestions')
+    .addEdge(START, 'recognizeProblem')
+    .addConditionalEdges(
+      'recognizeProblem',
+      (state: WorkflowState) => {
+        console.log(state, 'state');
+        if (state.error) {
+          return END;
+        }
+        return 'checkQuestions';
+      },
+      ['checkQuestions', END],
+    )
     .addEdge('checkQuestions', 'analyzeProblem')
     .addEdge('analyzeProblem', 'createStoryboard')
     .addEdge('createStoryboard', 'generateVoice')
@@ -134,7 +101,7 @@ export function createWorkflow() {
 }
 
 export async function runWorkflow(
-  problemText: string,
+  initialState: WorkflowState,
   options?: {
     threadId?: string;
     questions?: string[];
@@ -168,15 +135,6 @@ export async function runWorkflow(
     writer,
   } as any;
 
-  const initialState: WorkflowState = {
-    problemText,
-    questions: options?.questions,
-    problemAnalysis: '',
-    storyboard: [],
-    videoCode: '',
-    videoUrl: '',
-  };
-
   let lastOutput: WorkflowState = initialState;
 
   // 第一次调用，如果有多道题，工作流会在 checkQuestions 节点中断等待用户选择
@@ -188,12 +146,13 @@ export async function runWorkflow(
       const [, chunkAny] = chunk as any;
       // 检查是否包含 interrupt
       if (chunkAny.__interrupt__) {
-        console.log('检测到中断');
+        console.log('检测到中断', chunkAny);
+        const [interrupt] = chunkAny.__interrupt__;
 
         // 返回中断信息给前端
         options?.onInterrupt?.({
           type: 'question_selection',
-          questions: lastOutput.questions || [],
+          questions: interrupt?.value?.questions || [],
           threadId,
         });
 
@@ -279,112 +238,4 @@ export async function resumeWorkflow(
   }
 
   return lastOutput;
-}
-
-// 定义题目解析的输出 schema
-const QuestionsSchema = z.object({
-  questions: z.array(z.string()).describe('解析出的数学题目数组'),
-});
-
-// Function to parse questions from text input
-export async function parseTextQuestions(text: string): Promise<string[]> {
-  const llm = new ChatOpenAI({
-    model: process.env.MODEL_NAME || 'gpt-4o-mini',
-    maxCompletionTokens: 4096,
-    configuration: {
-      apiKey: process.env.API_KEY,
-      baseURL: process.env.BASE_URL,
-    },
-  }).withStructuredOutput(QuestionsSchema);
-
-  const systemPrompt = `你是一个数学题目识别专家。请仔细分析输入的数学题目，将其解析为独立的题目。
-
-规则：
-1. 如果只有一道数学题，将其放入数组中
-2. 如果有多道数学题，将每一道题放入数组中
-3. 每道题必须是完整的、独立的题目文本
-4. 只返回题目文本，不要包含解析或答案`;
-
-  console.log('开始解析文本题目...');
-
-  try {
-    const result = await llm.invoke([
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-      {
-        role: 'human',
-        content: `【数学题目】：${text}`,
-      },
-    ]);
-
-    console.log('文本解析返回:', result);
-    return result.questions;
-  } catch (error) {
-    console.error('文本解析失败:', error);
-    throw new Error(
-      `文本解析失败: ${error instanceof Error ? error.message : '未知错误'}`,
-    );
-  }
-}
-
-// Function to parse questions from image using vision model
-export async function parseImageQuestions(imageUrl: string): Promise<string[]> {
-  const llm = new ChatOpenAI({
-    model: process.env.VISION_MODEL,
-    maxCompletionTokens: 4096,
-    configuration: {
-      apiKey: process.env.API_KEY,
-      baseURL: process.env.BASE_URL,
-    },
-  }).withStructuredOutput(QuestionsSchema);
-
-  const systemPrompt = `你是一个数学题目识别专家。请仔细分析图片中的数学题目，将其解析为独立的题目。
-
-规则：
-1. 如果图片中只有一道数学题，将其放入数组中
-2. 如果图片中有多道数学题，将每一道题放入数组中
-3. 每道题必须是完整的、独立的题目文本
-4. 只返回题目文本，不要包含解析或答案
-5. 如果需要图片才能理解题目，请在题目中说明`;
-
-  console.log('开始视觉模型识别...');
-
-  // Convert local image to base64
-  const imagePath = imageUrl.replace(/^http:\/\/localhost:\d+\//, '');
-  const imageFullPath = path.join(process.cwd(), 'public', imagePath);
-  const imageBuffer = await fs.readFile(imageFullPath);
-  const base64Image = imageBuffer.toString('base64');
-  const ext = path.extname(imagePath).slice(1).toLowerCase();
-  const mimeType = ext === 'jpg' ? 'jpeg' : ext;
-  const dataUrl = `data:image/${mimeType};base64,${base64Image}`;
-
-  console.log('图片大小:', Math.round(base64Image.length / 1024), 'KB');
-
-  try {
-    const result = await llm.invoke([
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-      {
-        role: 'human',
-        content: [
-          {
-            type: 'image_url',
-            image_url: {url: dataUrl},
-          },
-        ],
-      },
-    ]);
-
-    console.log('视觉模型返回:', result);
-    return result.questions;
-  } catch (error) {
-    console.error('视觉模型调用失败:', error);
-    throw new Error(
-      `图片识别失败: ${error instanceof Error ? error.message : '未知错误'}`,
-    );
-  }
 }

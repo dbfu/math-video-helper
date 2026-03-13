@@ -7,8 +7,9 @@ export interface StoryboardStep {
 }
 
 export interface WorkflowState {
-  problemText: string;
+  problemText?: string;
   questions?: string[];
+  imagePath?: string;
   selectedQuestionIndex?: number;
   selectedQuestion?: string;
   problemAnalysis: string;
